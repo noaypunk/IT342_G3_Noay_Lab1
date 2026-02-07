@@ -4,9 +4,8 @@ import axios from 'axios';
 function App() {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const [users, setUsers] = useState([]); // To store the list of users
+  const [users, setUsers] = useState([]); 
 
-  // Function to fetch all users from the backend
   const fetchUsers = async () => {
     try {
       const response = await axios.get("http://localhost:8080/api/auth/all");
@@ -16,7 +15,6 @@ function App() {
     }
   };
 
-  // Fetch users automatically when the component loads
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchUsers();
@@ -29,15 +27,12 @@ function App() {
     try {
       const response = await axios.post(`http://localhost:8080${endpoint}`, formData);
       
-      // If the backend returns a string (like "Login Successful!"), it shows in response.data
       const message = typeof response.data === 'string' ? response.data : "Success!";
       alert(message);
       
-      // Refresh the user list if a new user was just registered
       if (!isLogin) fetchUsers();
       
     } catch (error) {
-      // Improved error handling to show backend error messages
       const errorMsg = error.response?.data || "Server unreachable. Make sure Spring Boot is running!";
       alert("Error: " + errorMsg);
     }
@@ -77,7 +72,7 @@ function App() {
         
         <p onClick={() => {
             setIsLogin(!isLogin);
-            setFormData({email: '', password: ''}); // Clear form on toggle
+            setFormData({email: '', password: ''});
           }} 
           style={{ cursor: 'pointer', color: '#007bff', textDecoration: 'underline', marginTop: '15px' }}>
           {isLogin ? "Need an account? Register" : "Have an account? Login"}
