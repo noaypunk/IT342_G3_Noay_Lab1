@@ -14,10 +14,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Required for POST requests from React
-            .cors(Customizer.withDefaults()) // Uses your WebMvcConfigurer beans
+            .csrf(csrf -> csrf.disable()) 
+            .cors(Customizer.withDefaults()) 
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll() // Open the auth door
+                .requestMatchers("/api/auth/**").permitAll() 
                 .anyRequest().authenticated()
             );
         return http.build();
