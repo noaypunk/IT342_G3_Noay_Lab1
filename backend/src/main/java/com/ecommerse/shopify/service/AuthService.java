@@ -13,13 +13,13 @@ public class AuthService {
     private UserRepository userRepository;
 
     public User registerUser(User user) {
-        // You can add logic here to check if the email is already taken
+        // space for logic of redandant email entries
         return userRepository.save(user);
     }
 
     public String loginUser(String email, String password) {
         Optional<User> user = userRepository.findByEmail(email);
-        if (user.isPresent() && user.get().getPassword().equals(password)) {
+        if (user.isPresent() && user.get().getPassword_hash().equals(password)) {
             return "Login Successful!";
         }
         return "Invalid email or password";

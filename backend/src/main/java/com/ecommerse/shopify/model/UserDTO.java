@@ -1,4 +1,4 @@
-package com.ecommerse.shopify.model; // This MUST match your folder structure
+package com.ecommerse.shopify.model; 
 
 import lombok.Data;
 

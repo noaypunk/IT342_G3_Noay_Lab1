@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './App.css';
 
 function App() {
+  const [loggedInUser, setLoggedInUser] = useState(() => {
+    const savedUser = localStorage.getItem('app_user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+
+  const [view, setView] = useState(localStorage.getItem('app_user') ? 'dashboard' : 'auth');
   const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [users, setUsers] = useState([]); 
+  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+  const [users, setUsers] = useState([]);
 
   const fetchUsers = async () => {
     try {
@@ -24,82 +31,115 @@ function App() {
     e.preventDefault();
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
     
+    // Simplified payload: Always send 'password'. Java will map it to 'password_hash'.
+    const payload = isLogin 
+      ? { email: formData.email, password: formData.password }
+      : { username: formData.username, email: formData.email, password: formData.password };
+
     try {
-      const response = await axios.post(`http://localhost:8080${endpoint}`, formData);
+      const response = await axios.post(`http://localhost:8080${endpoint}`, payload);
       
-      const message = typeof response.data === 'string' ? response.data : "Success!";
-      alert(message);
-      
-      if (!isLogin) fetchUsers();
-      
+      const data = response.data;
+      const isSuccess = typeof data === 'string' 
+        ? data.toLowerCase().includes("successful") 
+        : !!data; // If it's an object, assume success
+
+      if (isLogin && isSuccess) {
+        const userDetails = users.find(u => u.email === formData.email) || { email: formData.email };
+        localStorage.setItem('app_user', JSON.stringify(userDetails));
+        setLoggedInUser(userDetails);
+        setView('dashboard');
+      } else {
+        alert(typeof data === 'string' ? data : "Success!");
+        if (!isLogin) {
+          setIsLogin(true);
+          fetchUsers();
+        }
+      }
     } catch (error) {
-      const errorMsg = error.response?.data || "Server unreachable. Make sure Spring Boot is running!";
-      alert("Error: " + errorMsg);
+      alert("Error: " + (error.response?.data || "Server unreachable"));
     }
   };
 
-  return (
-    <div style={{ padding: '50px', textAlign: 'center', fontFamily: 'Segoe UI, Arial' }}>
-      <div style={{ backgroundColor: '#f4f4f4', padding: '20px', borderRadius: '8px', display: 'inline-block' }}>
-        <h2>{isLogin ? 'Login' : 'Register'}</h2>
-        <form onSubmit={handleSubmit} style={{ textAlign: 'left' }}>
-          <div>
-            <label>Email:</label><br/>
+  const handleLogout = () => {
+    localStorage.removeItem('app_user');
+    setLoggedInUser(null);
+    setFormData({ username: '', email: '', password: '' });
+    setView('auth');
+  };
+
+  if (view === 'auth') {
+    return (
+      <div className="container">
+        <div className="card">
+          <h2>{isLogin ? 'Login' : 'Register'}</h2>
+          <form onSubmit={handleSubmit}>
+            {!isLogin && (
+              <input 
+                className="input-field"
+                type="text" 
+                placeholder="Username"
+                value={formData.username}
+                required 
+                onChange={(e) => setFormData({...formData, username: e.target.value})} 
+              />
+            )}
             <input 
+              className="input-field"
               type="email" 
+              placeholder="Email"
               value={formData.email}
               required 
-              style={{ padding: '8px', width: '200px' }}
               onChange={(e) => setFormData({...formData, email: e.target.value})} 
             />
-          </div>
-          <br/>
-          <div>
-            <label>Password:</label><br/>
             <input 
+              className="input-field"
               type="password" 
+              placeholder="Password"
               value={formData.password}
               required 
-              style={{ padding: '8px', width: '200px' }}
               onChange={(e) => setFormData({...formData, password: e.target.value})} 
             />
-          </div>
-          <br/>
-          <button type="submit" style={{ width: '100%', padding: '10px', cursor: 'pointer' }}>
-            {isLogin ? 'Sign In' : 'Sign Up'}
-          </button>
-        </form>
-        
-        <p onClick={() => {
+            <button type="submit" className="btn-primary">
+              {isLogin ? 'Sign In' : 'Sign Up'}
+            </button>
+          </form>
+          <p onClick={() => {
             setIsLogin(!isLogin);
-            setFormData({email: '', password: ''});
-          }} 
-          style={{ cursor: 'pointer', color: '#007bff', textDecoration: 'underline', marginTop: '15px' }}>
-          {isLogin ? "Need an account? Register" : "Have an account? Login"}
-        </p>
+            setFormData({ username: '', email: '', password: '' });
+          }} className="toggle-link">
+            {isLogin ? "Need an account? Register" : "Have an account? Login"}
+          </p>
+        </div>
       </div>
+    );
+  }
 
-      <hr style={{ margin: '40px 0' }} />
+  return (
+    <div className="container">
+      <nav className="navbar">
+        <button onClick={() => setView('dashboard')}>Dashboard</button>
+        <button onClick={() => setView('profile')}>Profile</button>
+        <button className="btn-logout" onClick={handleLogout}>Logout</button>
+      </nav>
 
-      <h3>Registered Users (Database)</h3>
-      <button onClick={fetchUsers} style={{ marginBottom: '10px' }}>Refresh List</button>
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <table border="1" style={{ width: '50%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#eee' }}>
-              <th>ID</th>
-              <th>Email</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.length > 0 ? users.map((user) => (
-              <tr key={user.id}>
-                <td>{user.id}</td>
-                <td>{user.email}</td>
-              </tr>
-            )) : <tr><td colSpan="2">No users found.</td></tr>}
-          </tbody>
-        </table>
+      <div className="card">
+        {view === 'dashboard' ? (
+          <div>
+            <h1>🏠 Dashboard</h1>
+            <p>Welcome back, <strong>{loggedInUser?.username || loggedInUser?.email}</strong>!</p>
+          </div>
+        ) : (
+          <div>
+            <h1>👤 Profile</h1>
+            <p><strong>Username:</strong> {loggedInUser?.username || "N/A"}</p>
+            <p><strong>Email:</strong> {loggedInUser?.email}</p>
+            <p><strong>Status:</strong> <span style={{color: 'green'}}>{loggedInUser?.status || "ACTIVE"}</span></p>
+            {loggedInUser?.created_at && (
+                <p><strong>Member Since:</strong> {new Date(loggedInUser.created_at).toLocaleDateString()}</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
