@@ -1,0 +1,8 @@
+C:\IT342_G3_Noay_Lab1\backend\src\main\java\com\buspay\config\SecurityConfig.java
+C:\IT342_G3_Noay_Lab1\backend\src\main\java\com\buspay\controller\AuthController.java
+C:\IT342_G3_Noay_Lab1\backend\src\main\java\com\buspay\dto\LoginRequest.java
+C:\IT342_G3_Noay_Lab1\backend\src\main\java\com\buspay\dto\RegisterRequest.java
+C:\IT342_G3_Noay_Lab1\backend\src\main\java\com\buspay\model\User.java
+C:\IT342_G3_Noay_Lab1\backend\src\main\java\com\buspay\NoayAppApplication.java
+C:\IT342_G3_Noay_Lab1\backend\src\main\java\com\buspay\repository\UserRepository.java
+C:\IT342_G3_Noay_Lab1\backend\src\main\java\com\buspay\service\AuthService.java

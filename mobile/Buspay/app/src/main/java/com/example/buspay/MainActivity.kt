@@ -22,11 +22,22 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             BuspayTheme {
+                var loggedInUser by remember { mutableStateOf<String?>(null) }
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AuthScreen()
+                    if (loggedInUser == null) {
+                        AuthScreen(onLoginSuccess = { username ->
+                            loggedInUser = username
+                        })
+                    } else {
+                        DashboardScreen(
+                            username = loggedInUser!!,
+                            onLogout = { loggedInUser = null }
+                        )
+                    }
                 }
             }
         }
@@ -34,11 +45,8 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AuthScreen() {
-    // State to toggle between Login and Register
+fun AuthScreen(onLoginSuccess: (String) -> Unit) {
     var isLogin by remember { mutableStateOf(true) }
-
-    // Form fields
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -58,7 +66,6 @@ fun AuthScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Username Field
         TextField(
             value = username,
             onValueChange = { username = it },
@@ -66,20 +73,18 @@ fun AuthScreen() {
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Email Field (Only show during Registration)
+        Spacer(modifier = Modifier.height(8.dp))
+
         if (!isLogin) {
-            Spacer(modifier = Modifier.height(8.dp))
             TextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") },
+                label = { Text("Email Address") },
                 modifier = Modifier.fillMaxWidth()
             )
+            Spacer(modifier = Modifier.height(8.dp))
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Password Field
         TextField(
             value = password,
             onValueChange = { password = it },
@@ -95,30 +100,25 @@ fun AuthScreen() {
                 scope.launch {
                     try {
                         if (isLogin) {
-                            // Login Logic
                             val response = RetrofitClient.instance.loginUser(LoginRequest(username, password))
                             if (response.isSuccessful) {
-                                Toast.makeText(context, "Welcome back!", Toast.LENGTH_SHORT).show()
+                                val user = response.body()
+                                Toast.makeText(context, "Welcome back, ${user?.username}!", Toast.LENGTH_SHORT).show()
+                                onLoginSuccess(user?.username ?: "")
                             } else {
-                                Toast.makeText(context, "Login Failed", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Login failed: ${response.errorBody()?.string()}", Toast.LENGTH_LONG).show()
                             }
                         } else {
-                            // Registration Logic
-                            val regData = mapOf(
-                                "username" to username,
-                                "email" to email,
-                                "password" to password
-                            )
-                            val response = RetrofitClient.instance.registerUser(regData)
+                            val response = RetrofitClient.instance.registerUser(mapOf("username" to username, "email" to email, "password" to password))
                             if (response.isSuccessful) {
-                                Toast.makeText(context, "Registered Successfully! Please Login.", Toast.LENGTH_LONG).show()
-                                isLogin = true // Switch back to login after success
+                                Toast.makeText(context, "Registered! Please login.", Toast.LENGTH_LONG).show()
+                                isLogin = true
                             } else {
-                                Toast.makeText(context, "Registration Failed: ${response.message()}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Registration failed: ${response.errorBody()?.string()}", Toast.LENGTH_LONG).show()
                             }
                         }
                     } catch (e: Exception) {
-                        Toast.makeText(context, "Network Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "An error occurred: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                     }
                 }
             },
@@ -127,9 +127,30 @@ fun AuthScreen() {
             Text(if (isLogin) "Sign In" else "Sign Up")
         }
 
-        // Toggle Link (Equivalent to your React toggle-link)
         TextButton(onClick = { isLogin = !isLogin }) {
             Text(if (isLogin) "Need an account? Register" else "Have an account? Login")
+        }
+    }
+}
+
+@Composable
+fun DashboardScreen(username: String, onLogout: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "Dashboard", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(text = "Welcome, $username!", style = MaterialTheme.typography.bodyLarge)
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = onLogout,
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+        ) {
+            Text("Logout")
         }
     }
 }
