@@ -2,17 +2,10 @@ package com.buspay.dto;
 
 import lombok.Data;
 
-@Data
+@Data // This generates getters, setters, and toString automatically
 public class RegisterRequest {
-    private String username;
+    private String firstName;
+    private String lastName;
     private String email;
     private String password;
-
-    public String getUsername() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public CharSequence getPassword() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 }

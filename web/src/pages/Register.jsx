@@ -1,33 +1,39 @@
-import { useState } from 'react';
-import api from '../services/api';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { register } from '../services/api';
 
 const Register = () => {
-    const [formData, setFormData] = useState({ username: '', email: '', password: '' });
-    const navigate = useNavigate();
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: ''
+    });
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/auth/register', formData);
+            await register(formData);
             alert("Registration Successful!");
-            navigate('/login');
-        } catch (err) {
-            alert("Error: " + err.response?.data?.message || "Registration failed");
+        } catch (error) {
+            alert("Registration Failed: " + error.response?.data || error.message);
         }
     };
 
-    return (
-        <div className="auth-container">
-            <h2>Register for BusPay</h2>
-            <form onSubmit={handleSubmit}>
-                <input type="text" placeholder="Username" onChange={e => setFormData({...formData, username: e.target.value})} required />
-                <input type="email" placeholder="Email" onChange={e => setFormData({...formData, email: e.target.value})} required />
-                <input type="password" placeholder="Password" onChange={e => setFormData({...formData, password: e.target.value})} required />
-                <button type="submit">Sign Up</button>
-            </form>
-        </div>
-    );
+  return (
+    <div className="auth-container">
+        <form className="auth-form" onSubmit={handleSubmit}>
+            <h2>Create Account</h2>
+            <div className="input-group">
+                <input type="text" placeholder="First Name" onChange={(e) => setFormData({...formData, firstName: e.target.value})} />
+                <input type="text" placeholder="Last Name" onChange={(e) => setFormData({...formData, lastName: e.target.value})} />
+            </div>
+            <input type="email" placeholder="Email" onChange={(e) => setFormData({...formData, email: e.target.value})} />
+            <input type="password" placeholder="Password" onChange={(e) => setFormData({...formData, password: e.target.value})} />
+            <button type="submit" className="auth-button">Register</button>
+            <p>Already have an account? <a href="/login">Login</a></p>
+        </form>
+    </div>
+);
 };
 
 export default Register;

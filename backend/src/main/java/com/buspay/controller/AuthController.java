@@ -1,47 +1,40 @@
 package com.buspay.controller;
 
+import com.buspay.dto.LoginRequest; // You'll need to create this DTO
 import com.buspay.dto.RegisterRequest;
-import com.buspay.model.User;
-import com.buspay.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.buspay.service.AuthService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*") // Allows React/Android to connect
+// 1. Add CrossOrigin to allow your React app (usually port 5173 or 3000) to talk to the backend
+@CrossOrigin(origins = "http://localhost:5173") 
 public class AuthController {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final AuthService authService;
 
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
-            return ResponseEntity.badRequest().body("Error: Username is already taken!");
+        try {
+            return ResponseEntity.ok(authService.register(request));
+        } catch (Exception e) {
+            // 2. Add basic error handling so the frontend knows why it failed
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        User user = new User();
-        user.setUsername(request.getUsername());
-        
-        // If RegisterRequest does not provide an email field, omit setting it here
-        // or set a default/placeholder if required:
-        // user.setEmail("no-reply@example.com");
-        
-        // ENCRYPTION: Hash the password before saving to Supabase
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-
-        userRepository.save(user);
-        return ResponseEntity.ok("User registered successfully!");
     }
 
+    // 3. Add the Login endpoint
     @PostMapping("/login")
-    public ResponseEntity<?> login() {
-        // We will implement JWT here next
-        return ResponseEntity.ok("Login logic triggered!");
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        try {
+            return ResponseEntity.ok(authService.login(request));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Invalid email or password");
+        }
     }
 }

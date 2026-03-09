@@ -1,34 +1,46 @@
-import { useEffect, useState } from 'react';
-import api from '../services/api';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
-    const [user, setUser] = useState(null);
     const navigate = useNavigate();
-
-    useEffect(() => {
-        api.get('/user/me')
-            .then(res => setUser(res.data))
-            .catch(() => handleLogout());
-    }, []);
+    const [showProfile, setShowProfile] = useState(false);
+    
+    // Retrieve user data stored during login
+    const user = JSON.parse(localStorage.getItem('user'));
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
+        // Clear user session data
+        localStorage.removeItem('user'); 
+        // Redirect back to login page
         navigate('/login');
     };
 
     return (
-        <div className="dashboard">
-            <h1>Welcome to BusPay Dashboard</h1>
-            {user ? (
-                <div>
-                    <p>Logged in as: <strong>{user.username}</strong></p>
-                    <p>Email: {user.email}</p>
-                    <button onClick={handleLogout} style={{backgroundColor: 'red', color: 'white'}}>Logout</button>
-                </div>
-            ) : <p>Loading profile...</p>}
+  <div className="container">
+    <nav className="navbar">
+      <div className="nav-logo">BusPay</div>
+      <div className="nav-links">
+        <button className="nav-btn" onClick={() => setShowProfile(!showProfile)}>
+          {showProfile ? "Home" : "Profile"}
+        </button>
+        <button className="btn-logout" onClick={handleLogout}>Logout</button>
+      </div>
+    </nav>
+
+    <main className="dashboard-content">
+      {showProfile ? (
+        <div className="card">
+          {/* Your Profile Details Table here */}
         </div>
-    );
+      ) : (
+        <div className="welcome-text">
+          <h1>Welcome back, {user?.firstName}!</h1>
+          <p>Manage your bus payments and account details here.</p>
+        </div>
+      )}
+    </main>
+  </div>
+);
 };
 
 export default Dashboard;
