@@ -23,13 +23,27 @@ const Register = () => {
     <div className="auth-container">
         <form className="auth-form" onSubmit={handleSubmit}>
             <h2>Create Account</h2>
-            <div className="input-group">
-                <input type="text" placeholder="First Name" onChange={(e) => setFormData({...formData, firstName: e.target.value})} />
-                <input type="text" placeholder="Last Name" onChange={(e) => setFormData({...formData, lastName: e.target.value})} />
-            </div>
-            <input type="email" placeholder="Email" onChange={(e) => setFormData({...formData, email: e.target.value})} />
-            <input type="password" placeholder="Password" onChange={(e) => setFormData({...formData, password: e.target.value})} />
+            <table>
+                <tr>
+                    <td>
+                        <input type="text" placeholder="First Name" onChange={(e) => setFormData({...formData, firstName: e.target.value})} />
+                    </td>
+                    <td>
+                        <input type="text" placeholder="Last Name" onChange={(e) => setFormData({...formData, lastName: e.target.value})} />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="email" placeholder="Email" onChange={(e) => setFormData({...formData, email: e.target.value})} />
+                    </td>
+                    <td>
+                        <input type="password" placeholder="Set Password" onChange={(e) => setFormData({...formData, password: e.target.value})} />
+                    </td>
+                </tr>
+            </table>
+            
             <button type="submit" className="auth-button">Register</button>
+           
             <p>Already have an account? <a href="/login">Login</a></p>
         </form>
     </div>

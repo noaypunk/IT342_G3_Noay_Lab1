@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Setter 
 @NoArgsConstructor 
 @AllArgsConstructor
-@Builder  // <--- THIS IS WHAT FIXES THE "method builder()" ERROR
+@Builder  
 public class User {
 
     @Id

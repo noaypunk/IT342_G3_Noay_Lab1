@@ -11,9 +11,8 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder; // Remove the = new ...
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    // Inject both through the constructor
     public AuthService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -33,7 +32,6 @@ public class AuthService {
                 firstName = (String) f2.get(request);
             } catch (Exception ignored) { }
         } catch (Exception ignored) { }
-        // set firstName (use setter if present, otherwise set field via reflection)
         try {
             try {
                 java.lang.reflect.Method m = user.getClass().getMethod("setFirstName", String.class);
@@ -62,7 +60,6 @@ public class AuthService {
                 } catch (Exception ignored2) { }
             }
         } catch (Exception ignored) { }
-        // set lastName (use setter if present, otherwise set field via reflection)
         try {
             try {
                 java.lang.reflect.Method m2 = user.getClass().getMethod("setLastName", String.class);
@@ -149,10 +146,8 @@ public class AuthService {
         return userRepository.save(user);
     }
 
-   // Inside AuthService.java
 
 public User login(LoginRequest request) {
-    // extract email (try getter, then common field names)
     String email = null;
     try {
         try {
@@ -173,7 +168,6 @@ public User login(LoginRequest request) {
         } catch (Exception ignored) { }
     } catch (Exception ignored) { }
 
-    // extract raw password (try getter, then common field names)
     String rawPassword = null;
     try {
         try {
@@ -198,7 +192,6 @@ public User login(LoginRequest request) {
         throw new RuntimeException("Email not provided");
     }
 
-    // 1. Find user by email
     final String emailToFind = email;
     User user = userRepository.findByEmail(emailToFind)
             .orElseThrow(() -> new RuntimeException("User not found with email: " + emailToFind));
@@ -207,7 +200,7 @@ public User login(LoginRequest request) {
         throw new RuntimeException("Password not provided");
     }
 
-    // 2. Check if the password matches the BCrypt hash in the database
+    // Check if the password matches the BCrypt hash in the database
     String storedPassword = null;
     try {
         try {
