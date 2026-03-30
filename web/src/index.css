@@ -167,3 +167,43 @@ p{
   cursor: pointer;
   font-weight: 600;
 }
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.balance-amount {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2ecc71; /* Green for money */
+}
+
+.points-amount {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #f1c40f; /* Gold for points */
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.history-table th, .history-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #333;
+}
+
+.text-success { color: #2ecc71; }
+.text-danger { color: #e74c3c; }
+
+.status-pill {
+    background: #444;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+}
