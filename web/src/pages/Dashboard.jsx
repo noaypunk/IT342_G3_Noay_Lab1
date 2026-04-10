@@ -40,9 +40,8 @@ const Dashboard = () => {
                         <h2>User Profile</h2>
                         <table className="profile-table">
                             <tbody>
-                                <tr><td><strong>Username:</strong></td><td>{user?.username}</td></tr>
                                 <tr><td><strong>Email:</strong></td><td>{user?.email}</td></tr>
-                                <tr><td><strong>Account Status:</strong></td><td>Active</td></tr>
+                                <tr><td><strong>Account Status:</strong></td><td> Active </td></tr>
                             </tbody>
                         </table>
                     </div>
