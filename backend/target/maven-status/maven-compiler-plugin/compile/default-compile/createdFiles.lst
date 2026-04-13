@@ -6,4 +6,5 @@ com\buspay\model\User$UserBuilder.class
 com\buspay\dto\RegisterRequest.class
 com\buspay\config\SecurityConfig.class
 com\buspay\model\User.class
+com\buspay\controller\WalletController.class
 com\buspay\NoayAppApplication.class

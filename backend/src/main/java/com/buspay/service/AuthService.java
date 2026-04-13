@@ -6,6 +6,7 @@ import com.buspay.model.User;
 import com.buspay.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
@@ -18,217 +19,56 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public User register(RegisterRequest request) {
+        // Check if email already exists to prevent DataIntegrityViolationException
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already registered: " + request.getEmail());
+        }
+
         User user = new User();
-        String firstName = null;
-        try {
-            java.lang.reflect.Field f = request.getClass().getDeclaredField("firstName");
-            f.setAccessible(true);
-            firstName = (String) f.get(request);
-        } catch (NoSuchFieldException e1) {
-            try {
-                java.lang.reflect.Field f2 = request.getClass().getDeclaredField("firstname");
-                f2.setAccessible(true);
-                firstName = (String) f2.get(request);
-            } catch (Exception ignored) { }
-        } catch (Exception ignored) { }
-        try {
-            try {
-                java.lang.reflect.Method m = user.getClass().getMethod("setFirstName", String.class);
-                m.invoke(user, firstName);
-            } catch (NoSuchMethodException e) {
-                java.lang.reflect.Field uf = user.getClass().getDeclaredField("firstName");
-                uf.setAccessible(true);
-                uf.set(user, firstName);
-            }
-        } catch (Exception ignored) { }
-
-        String lastName = null;
-        try {
-            java.lang.reflect.Field f = request.getClass().getDeclaredField("lastName");
-            f.setAccessible(true);
-            lastName = (String) f.get(request);
-        } catch (NoSuchFieldException e1) {
-            try {
-                java.lang.reflect.Field f2 = request.getClass().getDeclaredField("lastname");
-                f2.setAccessible(true);
-                lastName = (String) f2.get(request);
-            } catch (Exception ignored) {
-                try {
-                    java.lang.reflect.Method gm = request.getClass().getMethod("getLastName");
-                    lastName = (String) gm.invoke(request);
-                } catch (Exception ignored2) { }
-            }
-        } catch (Exception ignored) { }
-        try {
-            try {
-                java.lang.reflect.Method m2 = user.getClass().getMethod("setLastName", String.class);
-                m2.invoke(user, lastName);
-            } catch (NoSuchMethodException e) {
-                java.lang.reflect.Field uf2 = user.getClass().getDeclaredField("lastName");
-                uf2.setAccessible(true);
-                uf2.set(user, lastName);
-            }
-        } catch (Exception ignored) { }
-
-        String email = null;
-        try {
-            try {
-                java.lang.reflect.Method gm = request.getClass().getMethod("getEmail");
-                email = (String) gm.invoke(request);
-            } catch (NoSuchMethodException e1) {
-                try {
-                    java.lang.reflect.Field f = request.getClass().getDeclaredField("email");
-                    f.setAccessible(true);
-                    email = (String) f.get(request);
-                } catch (Exception ignored) {
-                    try {
-                        java.lang.reflect.Field f2 = request.getClass().getDeclaredField("eMail");
-                        f2.setAccessible(true);
-                        email = (String) f2.get(request);
-                    } catch (Exception ignored2) { }
-                }
-            } catch (Exception ignored) { }
-
-            try {
-                java.lang.reflect.Method m3 = user.getClass().getMethod("setEmail", String.class);
-                m3.invoke(user, email);
-            } catch (NoSuchMethodException e) {
-                java.lang.reflect.Field uf3 = user.getClass().getDeclaredField("email");
-                uf3.setAccessible(true);
-                uf3.set(user, email);
-            }
-        } catch (Exception ignored) { }
-
-        String rawPassword = null;
-        try {
-            try {
-                java.lang.reflect.Method gm = request.getClass().getMethod("getPassword");
-                rawPassword = (String) gm.invoke(request);
-            } catch (NoSuchMethodException e1) {
-                try {
-                    java.lang.reflect.Field f = request.getClass().getDeclaredField("password");
-                    f.setAccessible(true);
-                    rawPassword = (String) f.get(request);
-                } catch (Exception ignored) {
-                    try {
-                        java.lang.reflect.Field f2 = request.getClass().getDeclaredField("pwd");
-                        f2.setAccessible(true);
-                        rawPassword = (String) f2.get(request);
-                    } catch (Exception ignored2) { }
-                }
-            } catch (Exception ignored) { }
-        } catch (Exception ignored) { }
-
-        String encodedPassword = rawPassword == null ? null : passwordEncoder.encode(rawPassword);
-        try {
-            java.lang.reflect.Method m4 = user.getClass().getMethod("setPassword", String.class);
-            m4.invoke(user, encodedPassword);
-        } catch (NoSuchMethodException e) {
-            try {
-                java.lang.reflect.Field uf4 = user.getClass().getDeclaredField("password");
-                uf4.setAccessible(true);
-                uf4.set(user, encodedPassword);
-            } catch (Exception ignored) { }
-        } catch (Exception ignored) { }
-
-        try {
-            java.lang.reflect.Method m5 = user.getClass().getMethod("setRole", String.class);
-            m5.invoke(user, "ROLE_USER");
-        } catch (NoSuchMethodException e) {
-            try {
-                java.lang.reflect.Field uf5 = user.getClass().getDeclaredField("role");
-                uf5.setAccessible(true);
-                uf5.set(user, "ROLE_USER");
-            } catch (Exception ignored) { }
-        } catch (Exception ignored) { }
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole("ROLE_USER");
+        user.setBalance(0.0);
+        user.setRewardPoints(0);
 
         return userRepository.save(user);
     }
 
+    public User login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found: " + request.getEmail()));
 
-public User login(LoginRequest request) {
-    String email = null;
-    try {
-        try {
-            java.lang.reflect.Method gm = request.getClass().getMethod("getEmail");
-            email = (String) gm.invoke(request);
-        } catch (NoSuchMethodException e1) {
-            try {
-                java.lang.reflect.Field f = request.getClass().getDeclaredField("email");
-                f.setAccessible(true);
-                email = (String) f.get(request);
-            } catch (Exception ignored) {
-                try {
-                    java.lang.reflect.Field f2 = request.getClass().getDeclaredField("username");
-                    f2.setAccessible(true);
-                    email = (String) f2.get(request);
-                } catch (Exception ignored2) { }
+        if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            return user;
+        }
+        throw new RuntimeException("Invalid credentials");
+    }
+
+    @Transactional
+    public boolean updateBalance(String email, Double amount) {
+        return userRepository.findByEmail(email).map(user -> {
+            // Use the null-safe getter we wrote in User.java
+            double currentBalance = user.getBalance();
+            user.setBalance(currentBalance + amount);
+            
+            // Logic: 1 point for every 100 deposited
+            if (amount >= 100) {
+                int pointsToAdd = (int) (amount / 100);
+                int currentPoints = user.getRewardPoints(); // Uses our null-safe getter
+                user.setRewardPoints(currentPoints + pointsToAdd);
             }
-        } catch (Exception ignored) { }
-    } catch (Exception ignored) { }
-
-    String rawPassword = null;
-    try {
-        try {
-            java.lang.reflect.Method gm = request.getClass().getMethod("getPassword");
-            rawPassword = (String) gm.invoke(request);
-        } catch (NoSuchMethodException e1) {
-            try {
-                java.lang.reflect.Field f = request.getClass().getDeclaredField("password");
-                f.setAccessible(true);
-                rawPassword = (String) f.get(request);
-            } catch (Exception ignored) {
-                try {
-                    java.lang.reflect.Field f2 = request.getClass().getDeclaredField("pwd");
-                    f2.setAccessible(true);
-                    rawPassword = (String) f2.get(request);
-                } catch (Exception ignored2) { }
-            }
-        } catch (Exception ignored) { }
-    } catch (Exception ignored) { }
-
-    if (email == null) {
-        throw new RuntimeException("Email not provided");
+            
+            userRepository.save(user);
+            return true;
+        }).orElse(false);
     }
 
-    final String emailToFind = email;
-    User user = userRepository.findByEmail(emailToFind)
-            .orElseThrow(() -> new RuntimeException("User not found with email: " + emailToFind));
-
-    if (rawPassword == null) {
-        throw new RuntimeException("Password not provided");
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found: " + email));
     }
-
-    // Check if the password matches the BCrypt hash in the database
-    String storedPassword = null;
-    try {
-        try {
-            java.lang.reflect.Method gm = user.getClass().getMethod("getPassword");
-            storedPassword = (String) gm.invoke(user);
-        } catch (NoSuchMethodException e1) {
-            try {
-                java.lang.reflect.Field f = user.getClass().getDeclaredField("password");
-                f.setAccessible(true);
-                storedPassword = (String) f.get(user);
-            } catch (NoSuchFieldException e2) {
-                try {
-                    java.lang.reflect.Field f2 = user.getClass().getDeclaredField("pwd");
-                    f2.setAccessible(true);
-                    storedPassword = (String) f2.get(user);
-                } catch (Exception ignored) { }
-            }
-        } catch (Exception ignored) { }
-    } catch (Exception ignored) { }
-
-    if (storedPassword == null) {
-        throw new RuntimeException("Stored password not available for user");
-    }
-
-    if (passwordEncoder.matches(rawPassword, storedPassword)) {
-        return user;
-    } else {
-        throw new RuntimeException("Invalid password");
-    }
-}
 }

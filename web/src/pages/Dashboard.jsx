@@ -1,98 +1,94 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const Dashboard = () => {
+const Dashboard = ({ onLogout }) => { // <--- Added prop here
     const navigate = useNavigate();
-    const [showProfile, setShowProfile] = useState(false);
-    
-    // Retrieve user data stored during login
-    const user = JSON.parse(localStorage.getItem('user'));
+    const [userData, setUserData] = useState({
+        firstName: '',
+        balance: 0,
+        rewardPoints: 0
+    });
+    const [loading, setLoading] = useState(true);
 
-    // Mock data - In the future, fetch this from your Spring Boot API
-    const [balance] = useState(250.75);
-    const [points] = useState(120);
-    const [transactions] = useState([
-        { id: 1, date: '2026-03-10', route: 'Line 101 - Northbound', amount: -15.00, status: 'Completed' },
-        { id: 2, date: '2026-03-09', route: 'Top-up via Gcash', amount: 200.00, status: 'Completed' },
-        { id: 3, date: '2026-03-08', route: 'Line 202 - Central', amount: -12.50, status: 'Completed' },
-    ]);
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    navigate('/login');
+                    return;
+                }
+
+                const response = await axios.get('http://localhost:8080/api/users/profile', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                setUserData(response.data);
+                setLoading(false);
+            } catch (error) {
+                console.error("Error fetching dashboard data", error);
+                if (error.response?.status === 401) {
+                    handleLogout(); // Use our logout logic if token expires
+                }
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, [navigate]);
 
     const handleLogout = () => {
-        localStorage.removeItem('user'); 
+        onLogout(); // This clears the user state in App.jsx
         navigate('/login');
     };
 
+    if (loading) return <div className="flex justify-center p-10 font-medium">Loading your account...</div>;
+
     return (
-        <div className="container">
-            <nav className="navbar">
-                <div className="nav-logo">BusPay</div>
-                <div className="nav-links">
-                    <button className="nav-btn" onClick={() => setShowProfile(!showProfile)}>
-                        {showProfile ? "Home" : "Profile"}
-                    </button>
-                    <button className="btn-logout" onClick={handleLogout}>Logout</button>
+        <div className="min-h-screen bg-gray-50">
+            <nav className="bg-white border-b border-gray-200 px-6 py-4 mb-8">
+                <div className="max-w-4xl mx-auto flex justify-between items-center">
+                    <div className="text-xl font-bold text-blue-600 tracking-tight">BusPay</div>
+                    <div className="flex items-center gap-6">
+                        <button onClick={() => navigate('/deposit')} className="text-sm font-medium text-gray-600 hover:text-blue-600 transition">Deposit</button>
+                        <button onClick={() => navigate('/profile')} className="text-sm font-medium text-gray-600 hover:text-blue-600 transition">Profile</button>
+                        <button onClick={handleLogout} className="text-sm font-bold text-red-500 hover:text-red-700 transition">Logout</button>
+                    </div>
                 </div>
             </nav>
 
-            <main className="dashboard-content">
-                {showProfile ? (
-                    <div className="card">
-                        <h2>User Profile</h2>
-                        <table className="profile-table">
-                            <tbody>
-                                <tr><td><strong>Email:</strong></td><td>{user?.email}</td></tr>
-                                <tr><td><strong>Account Status:</strong></td><td> Active </td></tr>
-                            </tbody>
-                        </table>
+            <div className="p-6 max-w-4xl mx-auto">
+                <header className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900">Welcome back, {userData.firstName}!</h1>
+                    <p className="text-gray-500">Manage your fares and rewards here.</p>
+                </header>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-blue-600 text-white p-8 rounded-2xl shadow-lg shadow-blue-200">
+                        <p className="text-blue-100 text-xs uppercase tracking-widest font-bold">Current Balance</p>
+                        <h2 className="text-4xl font-black mt-2">
+                            ₱{userData.balance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </h2>
                     </div>
-                ) : (
-                    <>
-                        <div className="welcome-text">
-                            <h1>Welcome back, {user?.username || 'User'}!</h1>
-                            <p>Manage your bus payments and account details here.</p>
-                        </div>
 
-                        {/* Stats Row: Balance and Points */}
-                        <div className="stats-grid">
-                            <div className="card balance-card">
-                                <h3>Available Balance</h3>
-                                <div className="balance-amount">₱ {balance.toFixed(2)}</div>
-                            </div>
-                            <div className="card points-card">
-                                <h3>BusPay Points</h3>
-                                <div className="points-amount">{points} pts</div>
-                            </div>
+                    <div className="bg-white border border-gray-100 p-8 rounded-2xl shadow-sm">
+                        <p className="text-gray-400 text-xs uppercase tracking-widest font-bold">BusPay Rewards</p>
+                        <div className="flex items-center mt-2">
+                            <span className="text-4xl font-black text-yellow-500">{userData.rewardPoints || 0}</span>
+                            <span className="ml-3 text-gray-500 font-bold text-lg">Points</span>
                         </div>
+                    </div>
+                </div>
 
-                        {/* Transaction History */}
-                        <div className="card history-card">
-                            <h3>Recent Transactions</h3>
-                            <table className="history-table">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Description</th>
-                                        <th>Amount</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {transactions.map((tx) => (
-                                        <tr key={tx.id}>
-                                            <td>{tx.date}</td>
-                                            <td>{tx.route}</td>
-                                            <td className={tx.amount > 0 ? "text-success" : "text-danger"}>
-                                                {tx.amount > 0 ? `+₱${tx.amount}` : `-₱${Math.abs(tx.amount)}`}
-                                            </td>
-                                            <td><span className="status-pill">{tx.status}</span></td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </>
-                )}
-            </main>
+                <section className="mt-12">
+                    <h3 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h3>
+                    <div className="flex flex-wrap gap-4">
+                        <button onClick={() => navigate('/deposit')} className="bg-blue-50 text-blue-600 hover:bg-blue-100 px-6 py-3 rounded-xl font-bold transition flex-1 md:flex-none text-center">Add Funds</button>
+                        <button className="bg-gray-900 text-white hover:bg-black px-6 py-3 rounded-xl font-bold transition flex-1 md:flex-none text-center">Pay Fare</button>
+                    </div>
+                </section>
+            </div>
         </div>
     );
 };

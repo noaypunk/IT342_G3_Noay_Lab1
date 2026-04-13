@@ -1,9 +1,9 @@
-plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    // ❌ REMOVE this if you're using Kotlin 2.0+
-    // alias(libs.plugins.kotlin.compose)
-}
+// plugins {
+//     alias(libs.plugins.android.application)
+//     alias(libs.plugins.kotlin.android)
+//     // ❌ REMOVE this if you're using Kotlin 2.0+
+//     // alias(libs.plugins.kotlin.compose)
+// }
 
 android {
     namespace = "com.example.buspay"
