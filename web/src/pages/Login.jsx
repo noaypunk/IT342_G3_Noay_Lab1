@@ -2,67 +2,70 @@ import React, { useState } from 'react';
 import { login } from '../services/api'; 
 import { useNavigate, Link } from 'react-router-dom';
 
-const Login = ({ onLoginSuccess }) => { // <--- Added prop here
+const Login = ({ onLoginSuccess }) => {
     const [credentials, setCredentials] = useState({
         email: '',
         password: ''
     });
+    const [error, setError] = useState(''); // Added local error state for cleaner UI
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
         try {
             const response = await login(credentials);
             
-            // 1. Save the token for API headers
             if (response.data.token) {
                 localStorage.setItem('token', response.data.token);
             }
 
-            // 2. Pass the user object back to App.jsx
-            // This triggers the state change that makes the dashboard visible
             onLoginSuccess(response.data); 
-            
-            console.log("Login Success:", response.data);
             navigate('/dashboard'); 
         } catch (error) {
             const errorMsg = error.response?.data || "Invalid email or password";
-            alert("Login Failed: " + errorMsg);
+            setError(errorMsg);
         }
     };
 
     return (
-        <div className="auth-container flex items-center justify-center min-h-screen bg-gray-100">
-            <form className="auth-form bg-white p-8 rounded-lg shadow-md w-96" onSubmit={handleSubmit}>
-                <h2 className="text-2xl font-bold mb-6 text-center text-blue-600">Welcome to BusPay</h2>
+        /* Use auth-page for the centered Radiant Blue layout */
+        <div className="auth-page"> 
+            <div className="auth-card">
+                <h2 className="nav-logo" style={{fontSize: '2rem', marginBottom: '1rem'}}>BusPay</h2>
+                <p className="text-muted" style={{marginBottom: '2rem'}}>Sign in to your commuter wallet</p>
                 
-                <div className="space-y-4">
-                    <input 
-                        type="email" 
-                        className="w-full p-2 border rounded"
-                        placeholder="Email" 
-                        required 
-                        value={credentials.email}
-                        onChange={(e) => setCredentials({...credentials, email: e.target.value})} 
-                    />
-                    <input 
-                        type="password" 
-                        className="w-full p-2 border rounded"
-                        placeholder="Password" 
-                        required 
-                        value={credentials.password}
-                        onChange={(e) => setCredentials({...credentials, password: e.target.value})} 
-                    />
-                    
-                    <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700 transition">
-                        Sign In
-                    </button>
-                </div>
+                {error && <div className="alert alert-error">{error}</div>}
 
-                <p className="mt-4 text-center text-sm text-gray-600">
-                    New to BusPay? <Link to="/register" className="text-blue-600 hover:underline">Create an account</Link>
-                </p>
-            </form>
+                <form onSubmit={handleSubmit}>
+                    <div className="space-y-4">
+                        <input 
+                            type="email" 
+                            className="auth-input" /* Styled in App.css */
+                            placeholder="Email Address" 
+                            required 
+                            value={credentials.email}
+                            onChange={(e) => setCredentials({...credentials, email: e.target.value})} 
+                        />
+                        <input 
+                            type="password" 
+                            className="auth-input"
+                            placeholder="Password" 
+                            required 
+                            value={credentials.password}
+                            onChange={(e) => setCredentials({...credentials, password: e.target.value})} 
+                        />
+                        
+                        <button type="submit" className="btn-primary" style={{width: '100%', marginTop: '1rem'}}>
+                            Sign In
+                        </button>
+                    </div>
+
+                    <p className="mt-4" style={{fontSize: '0.9rem', marginTop: '20px'}}>
+                        New to BusPay? <Link to="/register">Create an account</Link>
+                    </p>
+                </form>
+            </div>
         </div>
     );
 };

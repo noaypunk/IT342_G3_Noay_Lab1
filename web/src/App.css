@@ -1,68 +1,315 @@
+/* App.css */
+
 .container {
-  display: flex;
-  flex-direction: column; /* Stack Navbar on top of Content */
   width: 100%;
   min-height: 100vh;
-  background-color: #ece4e4;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
 }
 
+/* Navbar Styling */
 .navbar {
-  width: 100%;
-  height: 70px;
-  background-color: #1e1e1e;
+  background: white;
   display: flex;
-  justify-content: space-between; 
-  align-items: center;
-  padding: 0 40px;
-  box-sizing: border-box;
-  border-bottom: 1px solid #333;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .nav-logo {
-  font-size: 2.5rem;
-  font-weight: italic;
-  color: white;
+  color: #0066ff;
+  font-weight: 800;
+  font-size: 1.5rem;
 }
 
-.nav-links {
-  display: flex;
-  gap: 15px;
-}
-
+/* Dashboard Layout */
 .dashboard-content {
-  flex: 1; /* Takes up all remaining vertical space */
-  display: flex;
-  flex-direction: column;
-  justify-content: center; /* Centers the Welcome text vertically */
-  align-items: center;    /* Centers the Welcome text horizontally */
-  width: 100%;
-  padding: 20px;
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 1rem;
 }
 
 .welcome-text {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+/* Cards */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.card {
+  background: white;
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 102, 255, 0.1);
+}
+
+.card-balance {
+  background: linear-gradient(135deg, #0066ff 0%, #0046ad 100%);
   color: white;
+}
+
+.balance-amount {
+  font-size: 3rem;
+  font-weight: 900;
+}
+
+/* Buttons */
+.btn-primary {
+  background: #0066ff;
+  color: white;
+  border: none;
+  padding: 0.8rem 2rem;
+  border-radius: 50px; /* Commuter Pill Style */
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  background: #0052cc;
+}
+
+/* --- Dashboard Specific Helpers --- */
+
+.text-muted {
+    color: #64748b;
+    font-size: 1rem;
+    margin-top: 4px;
+}
+
+.card-label {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+
+.rewards-display {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.points-amount {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #f59e0b; /* Golden Yellow */
+}
+
+.points-label {
+    font-weight: 600;
+    color: #64748b;
+}
+
+.section-title {
+    margin-top: 3rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.action-button-group {
+    display: flex;
+    gap: 16px;
+}
+
+/* Secondary Button Style */
+.btn-secondary {
+    background: #e2e8f0;
+    color: #1e293b;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 50px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #cbd5e1;
+}
+
+/* App.css */
+
+/* Centers the login/register box in the middle of the screen */
+.auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.auth-card {
+  background: white;
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
   text-align: center;
 }
 
-.nav-btn {
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid #444;
-  background-color: #2a2a2a;
-  color: white;
-  cursor: pointer;
-  font-weight: 500;
+.auth-card h2 {
+  color: #0066ff;
+  font-weight: 800;
+  margin-bottom: 24px;
+}
+/* Add to App.css if not already there */
+.auth-input {
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+    display: block;
 }
 
-.btn-logout {
-  background-color: #dc3545;
-  border: none;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
+.auth-input:focus {
+    outline: none;
+    border-color: #0066ff;
+    background-color: #f8fbff;
+}
+/* --- Modern Commuter Navbar --- */
+
+.navbar {
+    background: rgba(255, 255, 255, 0.9); /* Frosted effect */
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid rgba(0, 102, 255, 0.05);
+    padding: 0.75rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.nav-item {
+    background: none;
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.nav-item:hover {
+    color: #0066ff;
+    background: #f0f7ff;
+}
+
+.nav-item.active {
+    color: #0066ff;
+    background: #e0eeff;
+}
+
+.nav-divider {
+    width: 1px;
+    height: 20px;
+    background: #e2e8f0;
+    margin: 0 0.5rem;
+}
+
+.nav-logout-btn {
+    background: none;
+    border: 1px solid #fee2e2;
+    color: #ef4444;
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.nav-logout-btn:hover {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
+}
+/* Modal & Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.7); /* Darker backdrop for focus */
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    animation: slideUp 0.3s ease-out;
+}
+
+/* Digital Receipt Styling */
+.receipt-card {
+    background: white;
+    width: 100%;
+    max-width: 350px;
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    position: relative;
+    border-top: 8px solid #0066ff;
+    animation: slideUp 0.4s ease-out;
+}
+
+.receipt-success-icon {
+    width: 60px;
+    height: 60px;
+    background: #dcfce7;
+    color: #22c55e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 15px;
+}
+
+.receipt-divider {
+    border-top: 2px dashed #e2e8f0;
+    margin: 20px 0;
+}
+
+.receipt-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }

@@ -1,94 +1,144 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
-const Dashboard = ({ onLogout }) => { // <--- Added prop here
+const Dashboard = () => {
     const navigate = useNavigate();
-    const [userData, setUserData] = useState({
-        firstName: '',
-        balance: 0,
-        rewardPoints: 0
-    });
+    const [userData, setUserData] = useState({ firstName: '', balance: 0, rewardPoints: 0 });
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchDashboardData = async () => {
-            try {
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    navigate('/login');
-                    return;
-                }
+    // Payment & Receipt States
+    const [showPayModal, setShowPayModal] = useState(false);
+    const [amountToPay, setAmountToPay] = useState('');
+    const [receipt, setReceipt] = useState(null);
 
-                const response = await axios.get('http://localhost:8080/api/users/profile', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                
-                setUserData(response.data);
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching dashboard data", error);
-                if (error.response?.status === 401) {
-                    handleLogout(); // Use our logout logic if token expires
-                }
-                setLoading(false);
-            }
-        };
-
-        fetchDashboardData();
-    }, [navigate]);
-
-    const handleLogout = () => {
-        onLogout(); // This clears the user state in App.jsx
-        navigate('/login');
+    const fetchProfile = async () => {
+        try {
+            const response = await api.get('/users/profile');
+            setUserData(response.data);
+        } catch (error) {
+            console.error("Fetch error", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    if (loading) return <div className="flex justify-center p-10 font-medium">Loading your account...</div>;
+    useEffect(() => {
+        fetchProfile();
+    }, []);
+
+    const handlePayFare = async (e) => {
+        e.preventDefault();
+        const payAmount = parseFloat(amountToPay);
+
+        if (isNaN(payAmount) || payAmount <= 0) {
+            alert("Please enter a valid amount");
+            return;
+        }
+
+        if (payAmount > userData.balance) {
+            alert("Insufficient balance!");
+            return;
+        }
+
+        try {
+            // Generates a unique reference (e.g., BP-KJ72S9B)
+            const refNumber = "BP-" + Math.random().toString(36).substr(2, 7).toUpperCase();
+            
+            setReceipt({
+                amount: payAmount,
+                ref: refNumber,
+                date: new Date().toLocaleString(),
+                merchant: "City Transit Bus"
+            });
+
+            setShowPayModal(false);
+            setAmountToPay('');
+            
+            // Refresh balance after payment
+            fetchProfile(); 
+        } catch (err) {
+            alert("Payment failed. Please try again.");
+        }
+    };
+
+    if (loading) return <div className="loading-spinner">Connecting to BusPay...</div>;
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <nav className="bg-white border-b border-gray-200 px-6 py-4 mb-8">
-                <div className="max-w-4xl mx-auto flex justify-between items-center">
-                    <div className="text-xl font-bold text-blue-600 tracking-tight">BusPay</div>
-                    <div className="flex items-center gap-6">
-                        <button onClick={() => navigate('/deposit')} className="text-sm font-medium text-gray-600 hover:text-blue-600 transition">Deposit</button>
-                        <button onClick={() => navigate('/profile')} className="text-sm font-medium text-gray-600 hover:text-blue-600 transition">Profile</button>
-                        <button onClick={handleLogout} className="text-sm font-bold text-red-500 hover:text-red-700 transition">Logout</button>
-                    </div>
-                </div>
-            </nav>
-
-            <div className="p-6 max-w-4xl mx-auto">
-                <header className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Welcome back, {userData.firstName}!</h1>
-                    <p className="text-gray-500">Manage your fares and rewards here.</p>
-                </header>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-blue-600 text-white p-8 rounded-2xl shadow-lg shadow-blue-200">
-                        <p className="text-blue-100 text-xs uppercase tracking-widest font-bold">Current Balance</p>
-                        <h2 className="text-4xl font-black mt-2">
-                            ₱{userData.balance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </h2>
-                    </div>
-
-                    <div className="bg-white border border-gray-100 p-8 rounded-2xl shadow-sm">
-                        <p className="text-gray-400 text-xs uppercase tracking-widest font-bold">BusPay Rewards</p>
-                        <div className="flex items-center mt-2">
-                            <span className="text-4xl font-black text-yellow-500">{userData.rewardPoints || 0}</span>
-                            <span className="ml-3 text-gray-500 font-bold text-lg">Points</span>
-                        </div>
-                    </div>
+        <div className="dashboard-content">
+            <header className="mb-8">
+                <h1 className="welcome-text">Welcome back, {userData.firstName}!</h1>
+                <p className="text-muted">Manage your transit fares and rewards here.</p>
+            </header>
+            
+            <div className="stats-grid">
+                <div className="card card-balance">
+                    <p className="card-label">Current Balance</p>
+                    <h2 className="balance-amount">
+                        ₱{userData.balance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </h2>
                 </div>
 
-                <section className="mt-12">
-                    <h3 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h3>
-                    <div className="flex flex-wrap gap-4">
-                        <button onClick={() => navigate('/deposit')} className="bg-blue-50 text-blue-600 hover:bg-blue-100 px-6 py-3 rounded-xl font-bold transition flex-1 md:flex-none text-center">Add Funds</button>
-                        <button className="bg-gray-900 text-white hover:bg-black px-6 py-3 rounded-xl font-bold transition flex-1 md:flex-none text-center">Pay Fare</button>
+                <div className="card card-white">
+                    <p className="card-label text-muted">BusPay Rewards</p>
+                    <div className="rewards-display">
+                        <span className="points-amount">{userData.rewardPoints || 0}</span>
+                        <span className="points-label">Points</span>
                     </div>
-                </section>
+                </div>
             </div>
+
+            <section className="quick-actions-section">
+                <h3 className="section-title">Quick Actions</h3>
+                <div className="action-button-group">
+                    <button onClick={() => navigate('/deposit')} className="btn-primary">
+                        Add Funds
+                    </button>
+                    <button onClick={() => setShowPayModal(true)} className="btn-secondary">
+                        Pay Fare
+                    </button>
+                </div>
+            </section>
+
+            {/* PAYMENT MODAL */}
+            {showPayModal && (
+                <div className="modal-overlay">
+                    <div className="auth-card modal-content">
+                        <h3>Pay Transit Fare</h3>
+                        <p className="text-muted">Enter the amount to pay the driver</p>
+                        <form onSubmit={handlePayFare} style={{marginTop: '20px'}}>
+                            <input 
+                                type="number" 
+                                className="auth-input" 
+                                placeholder="₱ 0.00"
+                                value={amountToPay}
+                                onChange={(e) => setAmountToPay(e.target.value)}
+                                autoFocus
+                            />
+                            <div className="action-button-group">
+                                <button type="submit" className="btn-primary" style={{flex: 2}}>Confirm Pay</button>
+                                <button type="button" onClick={() => setShowPayModal(false)} className="btn-secondary" style={{flex: 1}}>Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* DIGITAL RECEIPT */}
+            {receipt && (
+                <div className="modal-overlay">
+                    <div className="receipt-card">
+                        <div className="receipt-success-icon">✓</div>
+                        <h2 style={{color: '#0066ff'}}>Payment Success</h2>
+                        <div className="receipt-divider"></div>
+                        <div className="receipt-row"><span>Merchant:</span> <strong>{receipt.merchant}</strong></div>
+                        <div className="receipt-row"><span>Amount:</span> <strong style={{fontSize: '1.2rem'}}>₱{receipt.amount.toFixed(2)}</strong></div>
+                        <div className="receipt-row"><span>Ref Number:</span> <code>{receipt.ref}</code></div>
+                        <div className="receipt-row"><span>Date:</span> <small>{receipt.date}</small></div>
+                        <button onClick={() => setReceipt(null)} className="btn-primary" style={{width: '100%', marginTop: '20px'}}>Done</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
