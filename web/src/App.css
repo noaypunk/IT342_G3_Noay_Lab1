@@ -313,3 +313,24 @@
     from { transform: translateY(20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
+
+.profile-field {
+    margin-bottom: 24px;
+}
+
+/* Make sure alerts look consistent */
+.alert-success {
+    background-color: #dcfce7;
+    color: #166534;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.alert-error {
+    background-color: #fee2e2;
+    color: #991b1b;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 600;
+}

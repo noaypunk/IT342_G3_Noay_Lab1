@@ -1,0 +1,11 @@
+{
+  "deno": {
+    "lint": true,
+    "fmt": true,
+    "importMap": "./import_map.json"
+  },
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  }
+}

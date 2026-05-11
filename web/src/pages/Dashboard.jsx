@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
@@ -7,25 +7,30 @@ const Dashboard = () => {
     const [userData, setUserData] = useState({ firstName: '', balance: 0, rewardPoints: 0 });
     const [loading, setLoading] = useState(true);
 
-    // Payment & Receipt States
     const [showPayModal, setShowPayModal] = useState(false);
     const [amountToPay, setAmountToPay] = useState('');
     const [receipt, setReceipt] = useState(null);
 
-    const fetchProfile = async () => {
+    // Using useCallback so we can reference it safely inside useEffect and handlers
+    const fetchProfile = useCallback(async () => {
         try {
             const response = await api.get('/users/profile');
             setUserData(response.data);
         } catch (error) {
             console.error("Fetch error", error);
+            // If the error is 403 or 401, the token is bad. Go to login.
+            if (error.response?.status === 403 || error.response?.status === 401) {
+                localStorage.removeItem('token');
+                navigate('/login');
+            }
         } finally {
             setLoading(false);
         }
-    };
+    }, [navigate]);
 
     useEffect(() => {
         fetchProfile();
-    }, []);
+    }, [fetchProfile]);
 
     const handlePayFare = async (e) => {
         e.preventDefault();
@@ -42,23 +47,24 @@ const Dashboard = () => {
         }
 
         try {
-            // Generates a unique reference (e.g., BP-KJ72S9B)
-            const refNumber = "BP-" + Math.random().toString(36).substr(2, 7).toUpperCase();
+            // FIX: You need to actually tell the backend to deduct the money!
+            // Assuming you have a /users/pay endpoint
+            const response = await api.post('/users/pay', { amount: payAmount });
             
+            // If backend successful, show receipt
             setReceipt({
                 amount: payAmount,
-                ref: refNumber,
+                ref: response.data.reference || "BP-" + Math.random().toString(36).substr(2, 7).toUpperCase(),
                 date: new Date().toLocaleString(),
                 merchant: "City Transit Bus"
             });
 
             setShowPayModal(false);
             setAmountToPay('');
-            
-            // Refresh balance after payment
-            fetchProfile(); 
+            fetchProfile(); // Refresh balance from the real database
         } catch (err) {
-            alert("Payment failed. Please try again.");
+            console.error("Payment error", err);
+            alert("Payment failed. Please check your connection.");
         }
     };
 
@@ -67,7 +73,7 @@ const Dashboard = () => {
     return (
         <div className="dashboard-content">
             <header className="mb-8">
-                <h1 className="welcome-text">Welcome back, {userData.firstName}!</h1>
+                <h1 className="welcome-text">Welcome back, {userData.firstName || 'User'}!</h1>
                 <p className="text-muted">Manage your transit fares and rewards here.</p>
             </header>
             
@@ -75,7 +81,7 @@ const Dashboard = () => {
                 <div className="card card-balance">
                     <p className="card-label">Current Balance</p>
                     <h2 className="balance-amount">
-                        ₱{userData.balance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        ₱{Number(userData.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </h2>
                 </div>
 
@@ -109,11 +115,13 @@ const Dashboard = () => {
                         <form onSubmit={handlePayFare} style={{marginTop: '20px'}}>
                             <input 
                                 type="number" 
+                                step="0.01" // Allows decimals
                                 className="auth-input" 
                                 placeholder="₱ 0.00"
                                 value={amountToPay}
                                 onChange={(e) => setAmountToPay(e.target.value)}
                                 autoFocus
+                                required
                             />
                             <div className="action-button-group">
                                 <button type="submit" className="btn-primary" style={{flex: 2}}>Confirm Pay</button>

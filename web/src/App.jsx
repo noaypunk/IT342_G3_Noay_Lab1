@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 
 // Style Imports
@@ -12,21 +12,37 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Deposit from './pages/Deposit';
+import Profile from './pages/Profile';
+import AdminDashboard from './pages/AdminDashboard';
 
-// 1. Create a Layout component to keep the UI consistent
 const ProtectedLayout = ({ user, handleLogout }) => {
-    // If no user, kick them to login
-    if (!user) return <Navigate to="/login" replace />;
+    // Check state first, then storage
+    const sessionUser = user || JSON.parse(localStorage.getItem('user'));
+    
+    if (!sessionUser) return <Navigate to="/login" replace />;
 
     return (
         <div className="container">
-            <Navbar onLogout={handleLogout} />
+            {/* FIX: Added user={sessionUser} so Navbar knows your role instantly */}
+            <Navbar onLogout={handleLogout} user={sessionUser} />
             <main className="dashboard-content">
-                {/* Outlet renders the specific page (Dashboard or Deposit) */}
                 <Outlet /> 
             </main>
         </div>
     );
+};
+
+const AdminRoute = ({ user }) => {
+    const sessionUser = user || JSON.parse(localStorage.getItem('user'));
+    
+    console.log("AdminRoute Check - User Role:", sessionUser?.role);
+
+    if (!sessionUser || sessionUser.role !== 'ROLE_ADMIN') {
+        // If they aren't an admin, send them to dashboard, NOT login
+        return <Navigate to="/dashboard" replace />;
+    }
+    
+    return <Outlet />;
 };
 
 function App() {
@@ -40,9 +56,19 @@ function App() {
         }
     });
 
+    useEffect(() => {
+        const handleStorageChange = () => {
+            const saved = localStorage.getItem('user');
+            if (saved) setUser(JSON.parse(saved));
+            else setUser(null);
+        };
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
+
     const handleLoginSuccess = (userData) => {
-        setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
     };
 
     const handleLogout = () => {
@@ -53,20 +79,25 @@ function App() {
     return (
         <Router>
             <Routes>
-                {/* Public Routes - No Navbar here */}
+                {/* Public */}
                 <Route 
                     path="/login" 
                     element={user ? <Navigate to="/dashboard" replace /> : <Login onLoginSuccess={handleLoginSuccess} />} 
                 />
                 <Route path="/register" element={<Register />} />
 
-                {/* Protected Routes - Wrapped in ProtectedLayout */}
+                {/* Protected Group */}
                 <Route element={<ProtectedLayout user={user} handleLogout={handleLogout} />}>
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/deposit" element={<Deposit />} />
+                    <Route path="/profile" element={<Profile />} />
+
+                    {/* Admin Specific */}
+                    <Route element={<AdminRoute user={user} />}>
+                        <Route path="/admin/deposits" element={<AdminDashboard />} />
+                    </Route>
                 </Route>
 
-                {/* Global Redirects */}
                 <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
